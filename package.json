@@ -1,5 +1,12 @@
 {
+  "scripts": {
+    "watch": "npx tsc --watch",
+    "build": "npx tsc",
+    "start": "concurrently --kill-others \"npx http-server\" \"npm run watch\""
+  },
   "devDependencies": {
-    "typescript": "latest"
+    "typescript": "latest",
+    "concurrently": "latest",
+    "http-server": "latest"
   }
 }
