@@ -3,6 +3,7 @@
     "./src/**/*",
   ],
   "compilerOptions": {
+    "strict": true,
     "outDir": "./out",
     "target": "ESNext",
     "noImplicitAny": true,
