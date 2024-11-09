@@ -265,6 +265,8 @@ export class GameState {
             // console.log(`Clearing ${clearedLines.length} line(s)`);
             this._clearingLines = clearedLines;
             this.animateClearingLines(clearedLines, newGrid);
+        } else {
+            this.playSound("plop1.mp3");
         }
     }
 
@@ -272,14 +274,18 @@ export class GameState {
         this.animating = true;
         let linesCleared = clearedLines.length;
 
+        let sfxPath = this.getSoundForClearedAmountOfLines(linesCleared);
+        this.playSound(sfxPath);
+
         setTimeout(() => {
             // scoring
             this._totalLinesCleared += linesCleared;
-            this.addMessage(getMessageForClearedLines(linesCleared))
             this._level = 1 + Math.floor(this._totalLinesCleared / 10);
             this._totalScore += this.getScore(linesCleared, this.level);
 
             this._grid = new Grid(newGrid);
+
+            this.addMessage(getMessageForClearedLines(linesCleared));
 
             this.animating = false;
         }, 600);
@@ -292,6 +298,21 @@ export class GameState {
                 case 4: return new Message("TETRIS");
                 default: throw new Error("Unknown amount of clearedLines")
             }
+        }
+    }
+
+    private playSound(sfxFile: string) {
+        new Audio(`assets/sounds/${sfxFile}`)
+            .play();
+    }
+
+    private getSoundForClearedAmountOfLines(linesCleared: number) {
+        switch (linesCleared){
+            case 1: return "single.mp3";
+            case 2: return "double.mp3";
+            case 3: return "tripple.mp3";
+            case 4: return "tetris.mp3";
+            default: throw new Error("Unknown amount of clearedLines")
         }
     }
 

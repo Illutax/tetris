@@ -102,7 +102,7 @@ export class CanvasRenderer {
         const animating = this.gameState.animating;
         const clearingLines = this.gameState.clearingLines;
 
-        if (animating) console.log(`drawing with ${clearingLines}`)
+        // if (animating) console.log(`drawing with ${clearingLines}`)
         for (let y = 0; y < Grid.ROWS; y++) {
             const lineBeingCleared = animating && clearingLines.indexOf(Grid.ROWS - y - 1) > -1;
             // if (animating) console.log(`line ${y} being cleared ${lineBeingCleared}`)
@@ -246,7 +246,7 @@ export class CanvasRenderer {
 
     private drawMessages(ctx: CanvasRenderingContext2D, messages: Message[]) {
         if (messages.length === 0) return;
-        console.log("Drawing messages", messages)
+        // console.log("Drawing messages", messages)
         for (let i = 0; i < messages.length; i++) {
             this.drawText(ctx, messages[i].text, TextDrawRegion.TOP_LEFT, Vec2.of(0, i));
         }
