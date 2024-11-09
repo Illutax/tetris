@@ -1,6 +1,7 @@
 import {Tetromino} from "./Tetromino.js";
 import {Grid} from "./Grid.js";
 import {of, Vec2} from "./Vec2.js";
+import {Message} from "./Message.js";
 
 export class GameState {
     private readonly ONLY_I_PIECES = false;
@@ -28,7 +29,13 @@ export class GameState {
     private touched = false;
     private _clearingLines: number[] = [];
 
+    private _messages: Message[] = []
+
     //region Getter & Setter
+    get messages(): Message[] {
+        return this._messages;
+    }
+
     get canMove() {
         return !this.pause && !this.animating;
     }
@@ -145,6 +152,15 @@ export class GameState {
         this.pickNextTetromino();
     }
 
+    public addMessage(message: Message) {
+        this.messages.unshift(message);
+
+        setTimeout(() => {
+            if (this.messages.length === 0) return;
+            this.messages.pop();
+        }, 2500)
+    }
+
     public pickNextTetromino() {
         this.currentPos = of(Grid.COLS - 2, 0).div(2);
         // @ts-ignore
@@ -259,6 +275,7 @@ export class GameState {
         setTimeout(() => {
             // scoring
             this._totalLinesCleared += linesCleared;
+            this.addMessage(getMessageForClearedLines(linesCleared))
             this._level = 1 + Math.floor(this._totalLinesCleared / 10);
             this._totalScore += this.getScore(linesCleared, this.level);
 
@@ -266,6 +283,16 @@ export class GameState {
 
             this.animating = false;
         }, 600);
+
+        function getMessageForClearedLines(linesCleared: number) {
+            switch (linesCleared){
+                case 1: return new Message("SINGLE");
+                case 2: return new Message("DOUBLE");
+                case 3: return new Message("TRIPPLE");
+                case 4: return new Message("TETRIS");
+                default: throw new Error("Unknown amount of clearedLines")
+            }
+        }
     }
 
     private getMs() {

@@ -3,6 +3,7 @@ import {GameState} from "./GameState.js";
 import {Grid} from "./Grid.js";
 import {Tetromino} from "./Tetromino.js";
 import {of, Vec2} from "./Vec2.js";
+import {Message} from "./Message.js";
 
 export class CanvasRenderer {
     private static readonly PREFERRED_MIN_WIDTH = 1280;
@@ -78,11 +79,13 @@ export class CanvasRenderer {
         {
             this.pausedGameDueToSmallWindow = true;
             this.gameState.pause = true;
-            this.drawText(ctx, "* WINDOW TOO SMALL *", Vec2.of(0, 40));
+            this.drawText(ctx, "* WINDOW TOO SMALL *", TextDrawRegion.CENTER, Vec2.of(0, 1));
         } else if (this.pausedGameDueToSmallWindow) {
             this.gameState.pause = false;
             this.pausedGameDueToSmallWindow = false;
         }
+
+        this.drawMessages(ctx, this.gameState.messages)
 
         function calculateShadowPos(gameState: GameState): Vec2 {
             let shadow = gameState.currentTetromino.copy();
@@ -216,15 +219,40 @@ export class CanvasRenderer {
         this.drawText(ctx, "* PAUSED *");
     }
 
-    private drawText(ctx: CanvasRenderingContext2D, text: string, offset: Vec2 = Vec2.ZERO) {
-        const pos = of(Grid.COLS, Grid.ROWS)
-            .plus(Grid.GRID_BORDER_SIZES)
-            .mult(Grid.PIXEL_SIZE)
-            .div(2);
-        ctx.font = "40px Arial";
+    private drawText(ctx: CanvasRenderingContext2D, text: string, region: TextDrawRegion = TextDrawRegion.CENTER, offset: Vec2 = Vec2.ZERO) {
+        let pos: Vec2;
+        switch (region) {
+            case TextDrawRegion.CENTER:
+                pos = of(Grid.COLS, Grid.ROWS)
+                    .plus(Grid.GRID_BORDER_SIZES)
+                    .plus(offset)
+                    .mult(Grid.PIXEL_SIZE)
+                    .div(2);
+                ctx.textAlign = "center";
+                break;
+            case TextDrawRegion.TOP_LEFT:
+                pos = Grid.GRID_BORDER_SIZES
+                    .plus(offset)
+                    .mult(Grid.PIXEL_SIZE);
+                ctx.textAlign = "start";
+                break;
+        }
+
+        ctx.font = `${Grid.PIXEL_SIZE}px Arial`;
         ctx.strokeStyle = "#DDD";
         ctx.fillStyle = "#DDD";
-        ctx.textAlign = "center";
         ctx.fillText(text, pos.x + offset.x, pos.y + offset.y);
     }
+
+    private drawMessages(ctx: CanvasRenderingContext2D, messages: Message[]) {
+        if (messages.length === 0) return;
+        console.log("Drawing messages", messages)
+        for (let i = 0; i < messages.length; i++) {
+            this.drawText(ctx, messages[i].text, TextDrawRegion.TOP_LEFT, Vec2.of(0, i));
+        }
+    }
+}
+
+enum TextDrawRegion {
+    CENTER, TOP_LEFT
 }
