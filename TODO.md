@@ -20,6 +20,7 @@ Things which have to be done.
 * line clear timer should depend on the drop speed 
 
 ## Polishing
+* (pre-) cache sounds
 * style blocks
 * change style every level 
   * procedural styles for at least 255 levels

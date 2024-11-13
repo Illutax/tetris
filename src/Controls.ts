@@ -106,4 +106,10 @@ export class Controls {
         console.log("Loaded");
         this.gameState.applyLoad(newGameState);
     }
+
+    reset() {
+        let gameState = new GameState();
+        gameState.pickNextTetromino()
+        this.gameState.applyLoad(gameState);
+    }
 }
