@@ -1,9 +1,9 @@
-import {Controls} from "./Controls.js";
-import {GameState} from "./GameState.js";
-import {Grid} from "./Grid.js";
-import {Tetromino} from "./Tetromino.js";
-import {of, Vec2} from "./Vec2.js";
-import {Message} from "./Message.js";
+import { Controls } from "./Controls.js";
+import { GameState } from "./GameState.js";
+import { Grid } from "./Grid.js";
+import { Tetromino } from "./Tetromino.js";
+import { of, Vec2 } from "./Vec2.js";
+import { Message } from "./Message.js";
 
 export class CanvasRenderer {
     private static readonly PREFERRED_MIN_WIDTH = 1280;

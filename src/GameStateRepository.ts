@@ -1,4 +1,4 @@
-import {GameState} from "./GameState.js";
+import { GameState } from "./GameState.js";
 
 export class GameStateRepository {
     public save(gameState: GameState) {

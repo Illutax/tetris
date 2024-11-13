@@ -1,7 +1,7 @@
-import {GameState} from "./GameState.js";
-import {Controls} from "./Controls.js";
-import {CanvasRenderer} from "./CanvasRenderer.js";
-import {GameStateRepository} from "./GameStateRepository.js";
+import { GameState } from "./GameState.js";
+import { Controls } from "./Controls.js";
+import { CanvasRenderer } from "./CanvasRenderer.js";
+import { GameStateRepository } from "./GameStateRepository.js";
 
 export class Main {
     public static tickRate = 100; // max: 120

@@ -1,7 +1,7 @@
-import {Tetromino} from "./Tetromino.js";
-import {Grid} from "./Grid.js";
-import {of, Vec2} from "./Vec2.js";
-import {Message} from "./Message.js";
+import { Tetromino } from "./Tetromino.js";
+import { Grid } from "./Grid.js";
+import { of, Vec2 } from "./Vec2.js";
+import { Message } from "./Message.js";
 
 export class GameState {
     private readonly ONLY_I_PIECES = false;

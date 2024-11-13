@@ -1,7 +1,7 @@
-import {of, Vec2} from "./Vec2.js";
-import {GameState} from "./GameState.js";
-import {Tetromino} from "./Tetromino.js";
-import {GameStateRepository} from "./GameStateRepository";
+import { of, Vec2 } from "./Vec2.js";
+import { GameState } from "./GameState.js";
+import { Tetromino } from "./Tetromino.js";
+import { GameStateRepository } from "./GameStateRepository";
 
 export class Controls {
     private readonly gameState: GameState;

@@ -1,5 +1,5 @@
-import {Tetromino} from "./Tetromino.js";
-import {Vec2, of} from "./Vec2.js";
+import { Tetromino } from "./Tetromino.js";
+import { of, Vec2 } from "./Vec2.js";
 
 export class Grid {
     static readonly PIXEL_SIZE = 49;
