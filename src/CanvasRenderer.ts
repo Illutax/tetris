@@ -10,12 +10,10 @@ export class CanvasRenderer {
     private static readonly PREFERRED_MIN_HEIGHT = 1024;
 
     private readonly canvas: HTMLCanvasElement;
-    private gameState: GameState;
 
     private pausedGameDueToSmallWindow = false;
 
-    constructor(gameState: GameState, controls: Controls) {
-        this.gameState = gameState;
+    constructor(controls: Controls) {
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
         this.canvas.tabIndex = 0; // make canvas focus-able
 
@@ -37,9 +35,12 @@ export class CanvasRenderer {
             if (key === "-") controls.decLevel();
             if (key === "q") controls.rotateCW();
             if (key === "p") controls.pause();
+
+            if (key == "f7") controls.load()
+            if (key == "f8") controls.save()
             // swallow every key except reload and console
             return key === "f5" || key === "f12";
-        }
+        };
     }
 
     private adjustCanvasToScreen() {
@@ -65,27 +66,27 @@ export class CanvasRenderer {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.drawBorders(ctx);
-        this.drawGrid(ctx, gameState.getGrid());
+        this.drawGrid(ctx, gameState);
         this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState));
 
         this.drawNextTetromino(ctx, gameState.nextTetromino)
         this.drawScores(ctx, gameState.totalLinesCleared, gameState.level, gameState.totalScore);
 
         // Text overlay
-        if (this.gameState.pause) this.drawPausedBanner(ctx);
+        if (gameState.pause) this.drawPausedBanner(ctx);
 
         let currentWindowSize = this.getCurrentWindowSize();
         if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT)
         {
             this.pausedGameDueToSmallWindow = true;
-            this.gameState.pause = true;
+            gameState.pause = true;
             this.drawText(ctx, "* WINDOW TOO SMALL *", TextDrawRegion.CENTER, Vec2.of(0, 1));
         } else if (this.pausedGameDueToSmallWindow) {
-            this.gameState.pause = false;
+            gameState.pause = false;
             this.pausedGameDueToSmallWindow = false;
         }
 
-        this.drawMessages(ctx, this.gameState.messages)
+        this.drawMessages(ctx, gameState.messages)
 
         function calculateShadowPos(gameState: GameState): Vec2 {
             let shadow = gameState.currentTetromino.copy();
@@ -98,9 +99,10 @@ export class CanvasRenderer {
         }
     }
 
-    private drawGrid(context: CanvasRenderingContext2D, grid: Grid) {
-        const animating = this.gameState.animating;
-        const clearingLines = this.gameState.clearingLines;
+    private drawGrid(context: CanvasRenderingContext2D, gameState: GameState) {
+        const animating = gameState.animating;
+        const clearingLines = gameState.clearingLines;
+        const grid = gameState.getGrid();
 
         // if (animating) console.log(`drawing with ${clearingLines}`)
         for (let y = 0; y < Grid.ROWS; y++) {

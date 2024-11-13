@@ -5,23 +5,24 @@ import {Message} from "./Message.js";
 
 export class GameState {
     private readonly ONLY_I_PIECES = false;
-    private readonly BAG = this.bagRandom();
+    private readonly BAG: Generator<Tetromino>;
+    private id: number;
 
     private amountOfNextTetrominoes = 1;
     private nextGravity = 0;
 
     private _grid: Grid;
-    private _currentPos: Vec2 = Vec2.ZERO;
+    private _currentPos: Vec2;
     private _currentTetromino: Tetromino | undefined;
 
 
-    private _nextTetromino: Array<Tetromino>;
+    private _nextTetromino: Tetromino[];
 
-    private _levelOffset = 0;
-    private _level = 1;
-    private _gameTick = 0;
-    private _totalLinesCleared = 1;
-    private _totalScore = 0;
+    private _levelOffset: number;
+    private _level: number;
+    private _gameTick: number;
+    private _totalLinesCleared: number;
+    private _totalScore: number;
 
     private _pause = false;
     private _animating = false;
@@ -105,8 +106,15 @@ export class GameState {
     //endregion
 
     constructor() {
+        this.BAG = this.bagRandom();
         this._grid = new Grid();
+
+        this._currentPos = Vec2.ZERO;
+        this._levelOffset = 0;
         this._level = 1;
+        this._gameTick = 0;
+        this._totalLinesCleared = 0;
+        this._totalScore = 0;
         this.nextGravity = this.getMs() + this.progression(this.level);
         this._nextTetromino = new Array(this.amountOfNextTetrominoes)
             .fill(Tetromino.I);
@@ -114,6 +122,35 @@ export class GameState {
         if (!this.ONLY_I_PIECES) {
             this._nextTetromino = this._nextTetromino.map(() => this.getATetromino())
         }
+
+        this.id = Math.floor(Math.random()*(10^16));
+    }
+
+    public applyLoad(loadedGameState: GameState) {
+        this.id = loadedGameState.id;
+
+        function assignTetromino(currentTetromino1: Tetromino ) {
+            return Object.assign(new Tetromino("", []), (currentTetromino1)!);
+        }
+
+        let loadedTetromino = assignTetromino(loadedGameState._currentTetromino!);
+        let loadedGrid = Object.assign(new Grid(), loadedGameState._grid);
+
+        this._currentTetromino = new Tetromino(loadedTetromino.name, loadedTetromino.pixels);
+        this._currentPos = Vec2.ZERO.plus(loadedGameState._currentPos);
+        this._grid = loadedGrid;
+        this._nextTetromino = loadedGameState._nextTetromino.map(it => assignTetromino(it));
+
+        this._levelOffset = loadedGameState._levelOffset;
+        this._level = loadedGameState._level;
+        this._gameTick = loadedGameState._gameTick;
+        this._totalLinesCleared = loadedGameState._totalLinesCleared;
+        this._totalScore = loadedGameState._totalScore;
+        this._pause = loadedGameState._pause;
+        this._animating = loadedGameState._animating;
+        this._movedDown = loadedGameState._movedDown;
+        this.touched = loadedGameState.touched;
+        this._clearingLines = loadedGameState._clearingLines;
     }
 
     tick() {
