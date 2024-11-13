@@ -1,6 +1,8 @@
 # This is a basic workflow to upload files 
 # from GitHub to server via GitHub Actions
-name: Publish Website on DEV
+#derived from: https://github.com/milanmk/actions-file-deployer
+
+name: Publish app
 
 # Controls when the workflow will run
 on:
