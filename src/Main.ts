@@ -2,6 +2,7 @@ import { GameState } from "./GameState.js";
 import { Controls } from "./Controls.js";
 import { CanvasRenderer } from "./CanvasRenderer.js";
 import { GameStateRepository } from "./GameStateRepository.js";
+import { Message } from "./Message.js";
 
 export class Main {
     public static tickRate = 100; // max: 120
@@ -16,7 +17,25 @@ export class Main {
     constructor() {
         this.gameStateRepository = new GameStateRepository();
         const gameState = new GameState();
-        gameState.pickNextTetromino();
+
+        if (this.gameStateRepository.savePresent()) {
+            gameState.applyLoad(this.gameStateRepository.load());
+            gameState.pause = true;
+            gameState.addMessage(new Message("Loaded save state"));
+        } else {
+            gameState.pickNextTetromino();
+        }
+        window.onbeforeunload = () => {
+            this.gameStateRepository.save(gameState);
+        }
+
+        document.getElementById("reset")!.onclick = () => {
+            const gameState = new GameState();
+            gameState.pickNextTetromino();
+            this.gameState?.applyLoad(gameState);
+            this.gameStateRepository.deleteSave();
+        }
+
         this.init(gameState);
     }
 

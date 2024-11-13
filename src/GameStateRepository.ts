@@ -20,4 +20,8 @@ export class GameStateRepository {
         const saved = localStorage.getItem("save")
         return saved !== null;
     }
+
+    deleteSave() {
+        localStorage.removeItem("save");
+    }
 }
