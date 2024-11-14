@@ -123,13 +123,13 @@ export class GameState {
             this._nextTetromino = this._nextTetromino.map(() => this.getATetromino())
         }
 
-        this.id = Math.floor(Math.random()*(10^16));
+        this.id = Math.floor(Math.random() * (10 ^ 16));
     }
 
     public applyLoad(loadedGameState: GameState) {
         this.id = loadedGameState.id;
 
-        function assignTetromino(currentTetromino1: Tetromino ) {
+        function assignTetromino(currentTetromino1: Tetromino) {
             return Object.assign(new Tetromino("", []), (currentTetromino1)!);
         }
 
@@ -326,18 +326,28 @@ export class GameState {
         }, 600);
     }
 
+    private soundCache: Map<string, HTMLAudioElement> = new Map();
+
     private playSound(sfxFile: string) {
-        new Audio(`assets/sounds/${sfxFile}`)
-            .play();
+        if (!this.soundCache.has(sfxFile)) {
+            this.soundCache.set(sfxFile, new Audio(`assets/sounds/${sfxFile}`));
+        }
+        let audio = this.soundCache.get(sfxFile)!;
+        audio!.play();
     }
 
     private getSoundForClearedAmountOfLines(linesCleared: number) {
-        switch (linesCleared){
-            case 1: return "single.mp3";
-            case 2: return "double.mp3";
-            case 3: return "tripple.mp3";
-            case 4: return "tetris.mp3";
-            default: throw new Error("Unknown amount of clearedLines")
+        switch (linesCleared) {
+            case 1:
+                return "single.mp3";
+            case 2:
+                return "double.mp3";
+            case 3:
+                return "tripple.mp3";
+            case 4:
+                return "tetris.mp3";
+            default:
+                throw new Error("Unknown amount of clearedLines")
         }
     }
 
