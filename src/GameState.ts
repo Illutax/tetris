@@ -322,20 +322,8 @@ export class GameState {
 
             this._grid = new Grid(newGrid);
 
-            this.addMessage(getMessageForClearedLines(linesCleared));
-
             this.animating = false;
         }, 600);
-
-        function getMessageForClearedLines(linesCleared: number) {
-            switch (linesCleared){
-                case 1: return new Message("SINGLE");
-                case 2: return new Message("DOUBLE");
-                case 3: return new Message("TRIPPLE");
-                case 4: return new Message("TETRIS");
-                default: throw new Error("Unknown amount of clearedLines")
-            }
-        }
     }
 
     private playSound(sfxFile: string) {
