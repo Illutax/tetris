@@ -10,7 +10,6 @@ Things which have to be done.
   * Credits
   * Settings
 * Touch controls
-* link on homepage
 * seeded randomization
   * two player
 
@@ -22,5 +21,4 @@ Things which have to be done.
 ## Polishing
 * (pre-) cache sounds
 * style blocks
-* change style every level 
-  * procedural styles for at least 255 levels
+* procedural styles for at least 255 levels

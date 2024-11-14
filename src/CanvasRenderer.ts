@@ -45,7 +45,7 @@ export class CanvasRenderer {
     }
 
     private adjustCanvasToScreen() {
-        let {x:width, y:height} = this.getCurrentWindowSize();
+        let {x: width, y: height} = this.getCurrentWindowSize();
         // console.log(`actual: ${width}x${height}`);
         const preferredWidth = Math.max(CanvasRenderer.PREFERRED_MIN_WIDTH, width);
         const preferredHeight = Math.max(CanvasRenderer.PREFERRED_MIN_HEIGHT, height);
@@ -67,18 +67,17 @@ export class CanvasRenderer {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.drawBorders(ctx);
+        this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), gameState.level);
         this.drawGrid(ctx, gameState);
-        this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState));
 
-        this.drawNextTetromino(ctx, gameState.nextTetromino)
+        this.drawNextTetromino(ctx, gameState.nextTetromino, gameState.level)
         this.drawScores(ctx, gameState.totalLinesCleared, gameState.level, gameState.totalScore);
 
         // Text overlay
         if (gameState.pause) this.drawPausedBanner(ctx);
 
         let currentWindowSize = this.getCurrentWindowSize();
-        if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT)
-        {
+        if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT) {
             this.pausedGameDueToSmallWindow = true;
             gameState.pause = true;
             this.drawText(ctx, "* WINDOW TOO SMALL *", TextDrawRegion.CENTER, Vec2.of(0, 1));
@@ -100,7 +99,7 @@ export class CanvasRenderer {
         }
     }
 
-    private drawGrid(context: CanvasRenderingContext2D, gameState: GameState) {
+    private drawGrid(ctx: CanvasRenderingContext2D, gameState: GameState) {
         const animating = gameState.animating;
         const clearingLines = gameState.clearingLines;
         const grid = gameState.getGrid();
@@ -113,13 +112,13 @@ export class CanvasRenderer {
                 let cell = grid.pixels[y][x];
                 if (cell !== 0) {
                     const color = this.colorFromCell(cell) + (lineBeingCleared ? "44" : "FF");
-                    this.drawCell(context, of(x, y), color);
+                    this.drawCell(ctx, of(x, y), color, gameState.level);
                 }
             }
         }
     }
 
-    private drawShadowPiece(context: CanvasRenderingContext2D, tetromino: Tetromino, shadowPos: Vec2) {
+    private drawShadowPiece(ctx: CanvasRenderingContext2D, tetromino: Tetromino, shadowPos: Vec2, level: number) {
         const tetrominoY = tetromino.pixels.length;
         const tetrominoX = tetromino.pixels[0].length;
 
@@ -128,13 +127,13 @@ export class CanvasRenderer {
                 let cell = tetromino.pixels[y][x];
                 if (cell !== 0) {
                     const color = this.colorFromCell(cell);
-                    this.drawCell(context, of(x, y).plus(shadowPos), `${color}44`);
+                    this.drawCell(ctx, of(x, y).plus(shadowPos), `${color}44`, level);
                 }
             }
         }
     }
 
-    private drawNextTetromino(context: CanvasRenderingContext2D, nextTetrominoes: Tetromino[]) {
+    private drawNextTetromino(ctx: CanvasRenderingContext2D, nextTetrominoes: Tetromino[], level: number) {
         let offset = Grid.NEXT_TETROMINO_OFFSET.plus(of(Grid.COLS, 0));
         for (const nextTetromino of nextTetrominoes) {
             const tetrominoY = nextTetromino.pixels.length;
@@ -145,7 +144,7 @@ export class CanvasRenderer {
                     let cell = nextTetromino.pixels[y][x];
                     if (cell !== 0) {
                         const color = this.colorFromCell(cell);
-                        this.drawCell(context, offset.plus(of(x, y)), color);
+                        this.drawCell(ctx, offset.plus(of(x, y)), color, level);
                     }
                 }
             }
@@ -153,11 +152,71 @@ export class CanvasRenderer {
         }
     }
 
-    private drawCell(context: CanvasRenderingContext2D, pos: Vec2, color: string) {
+    public drawCell(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, level: number) {
+        let fn: (ctx: CanvasRenderingContext2D, pos: Vec2, color: string) => void;
+        if (level < 10) {
+            fn = this.drawCellDefaultFill;
+        } else if (level < 20) {
+            fn = this.drawCellWireFrame;
+        } else {
+            fn = this.drawCell3D;
+        }
+        fn.apply(this, [ctx, pos, color]);
+    }
+
+    private drawCell3D(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
         const size = Grid.PIXEL_SIZE;
         const offset = Grid.GRID_BORDER_SIZES;
-        context.fillStyle = color;
-        context.fillRect(
+        const thickness = 2;
+        ctx.fillStyle = "#222";
+        ctx.fillRect(
+            (offset.x + pos.x) * size, // x
+            (offset.y + pos.y) * size, // y
+            size, // width
+            size // height
+        );
+        ctx.fillStyle = "#DDD";
+        ctx.fillRect(
+            (offset.x + pos.x) * size + thickness, // x
+            (offset.y + pos.y) * size, // y
+            size - 2 * thickness, // width
+            thickness  // height
+        );
+
+        ctx.fillStyle = color;
+        ctx.fillRect(
+            (offset.x + pos.x) * size + thickness, // x
+            (offset.y + pos.y) * size + thickness, // y
+            size - 2 * thickness, // width
+            size - 2 * thickness  // height
+        );
+    }
+
+    private drawCellWireFrame(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
+        const size = Grid.PIXEL_SIZE;
+        const offset = Grid.GRID_BORDER_SIZES;
+        ctx.fillStyle = color;
+        ctx.fillRect(
+            (offset.x + pos.x) * size, // x
+            (offset.y + pos.y) * size, // y
+            size, // width
+            size  // height
+        );
+        const thickness = 10;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(
+            (offset.x + pos.x) * size + thickness, // x
+            (offset.y + pos.y) * size + thickness, // y
+            size - 2 * thickness, // width
+            size - 2 * thickness  // height
+        );
+    }
+
+    private drawCellDefaultFill(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
+        const size = Grid.PIXEL_SIZE;
+        const offset = Grid.GRID_BORDER_SIZES;
+        ctx.fillStyle = color;
+        ctx.fillRect(
             (offset.x + pos.x) * size, // x
             (offset.y + pos.y) * size, // y
             size, // width
@@ -165,20 +224,20 @@ export class CanvasRenderer {
         );
     }
 
-    private drawBorders(context: CanvasRenderingContext2D) {
-        context.fillStyle = "#888";
-        context.strokeStyle
+    private drawBorders(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = "#888";
+        ctx.strokeStyle
         const size = Grid.PIXEL_SIZE;
-        context.fillRect(
+        ctx.fillRect(
             0,
             0,
             (Grid.COLS + 2 * Grid.GRID_BORDER_SIZES.x) * size,
             (Grid.ROWS + 2 * Grid.GRID_BORDER_SIZES.y) * size
         )
 
-        context.fillStyle = "#000";
+        ctx.fillStyle = "#000";
         const borderThickness = 1;
-        context.fillRect(
+        ctx.fillRect(
             size,
             size,
             Grid.COLS * size - borderThickness * 2,
