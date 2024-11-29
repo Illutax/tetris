@@ -330,10 +330,24 @@ export class GameState {
 
     private playSound(sfxFile: string) {
         if (!this.soundCache.has(sfxFile)) {
+            console.error(`Sound wasn't preloaded: ${sfxFile}`);
             this.soundCache.set(sfxFile, new Audio(`assets/sounds/${sfxFile}`));
         }
         let audio = this.soundCache.get(sfxFile)!;
         audio!.play();
+    }
+
+    public preloadAllSounds(): void
+    {
+        for (let i = 1; i <= 4; i++) {
+            const sfxFile = this.getSoundForClearedAmountOfLines(i);
+            const audio = new Audio(`assets/sounds/${sfxFile}`);
+            audio.load();
+            this.soundCache.set(sfxFile, audio);
+        }
+        const audio = new Audio(`assets/sounds/plop1.mp3`);
+        audio.load();
+        this.soundCache.set("plop1.mp3", audio);
     }
 
     private getSoundForClearedAmountOfLines(linesCleared: number) {

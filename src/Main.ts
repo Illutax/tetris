@@ -17,6 +17,7 @@ export class Main {
     constructor() {
         this.gameStateRepository = new GameStateRepository();
         const gameState = new GameState();
+        gameState.preloadAllSounds();
 
         if (this.gameStateRepository.savePresent()) {
             gameState.applyLoad(this.gameStateRepository.load());
