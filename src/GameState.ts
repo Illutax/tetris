@@ -2,8 +2,10 @@ import { Tetromino } from "./Tetromino.js";
 import { Grid } from "./Grid.js";
 import { of, Vec2 } from "./Vec2.js";
 import { Message } from "./Message.js";
+import { AudioManager } from "./AudioManager.js";
 
 export class GameState {
+    private readonly audioManager: AudioManager | undefined;
     private readonly ONLY_I_PIECES = false;
     private readonly BAG: Generator<Tetromino>;
     private id: number;
@@ -105,7 +107,8 @@ export class GameState {
 
     //endregion
 
-    constructor() {
+    constructor(audioManager: AudioManager | undefined = undefined) {
+        this.audioManager = audioManager;
         this.BAG = this.bagRandom();
         this._grid = new Grid();
 
@@ -233,8 +236,7 @@ export class GameState {
                 currentIndex--;
 
                 // And swap it with the current element.
-                [array[currentIndex], array[randomIndex]] = [
-                    array[randomIndex], array[currentIndex]];
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
             }
 
             return array;
@@ -303,16 +305,14 @@ export class GameState {
             this._clearingLines = clearedLines;
             this.animateClearingLines(clearedLines, newGrid);
         } else {
-            this.playSound("plop1.mp3");
+            this.audioManager!.playPlop();
         }
     }
 
     private animateClearingLines(clearedLines: number[], newGrid: Array<number>[]) {
         this.animating = true;
         let linesCleared = clearedLines.length;
-
-        let sfxPath = this.getSoundForClearedAmountOfLines(linesCleared);
-        this.playSound(sfxPath);
+        this.audioManager!.playSoundForAmountOfClearedLines(linesCleared);
 
         setTimeout(() => {
             // scoring
@@ -324,45 +324,6 @@ export class GameState {
 
             this.animating = false;
         }, 600);
-    }
-
-    private soundCache: Map<string, HTMLAudioElement> = new Map();
-
-    private playSound(sfxFile: string) {
-        if (!this.soundCache.has(sfxFile)) {
-            console.error(`Sound wasn't preloaded: ${sfxFile}`);
-            this.soundCache.set(sfxFile, new Audio(`assets/sounds/${sfxFile}`));
-        }
-        let audio = this.soundCache.get(sfxFile)!;
-        audio!.play();
-    }
-
-    public preloadAllSounds(): void
-    {
-        for (let i = 1; i <= 4; i++) {
-            const sfxFile = this.getSoundForClearedAmountOfLines(i);
-            const audio = new Audio(`assets/sounds/${sfxFile}`);
-            audio.load();
-            this.soundCache.set(sfxFile, audio);
-        }
-        const audio = new Audio(`assets/sounds/plop1.mp3`);
-        audio.load();
-        this.soundCache.set("plop1.mp3", audio);
-    }
-
-    private getSoundForClearedAmountOfLines(linesCleared: number) {
-        switch (linesCleared) {
-            case 1:
-                return "single.mp3";
-            case 2:
-                return "double.mp3";
-            case 3:
-                return "tripple.mp3";
-            case 4:
-                return "tetris.mp3";
-            default:
-                throw new Error("Unknown amount of clearedLines")
-        }
     }
 
     private getMs() {

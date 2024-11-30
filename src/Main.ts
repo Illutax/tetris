@@ -3,6 +3,7 @@ import { Controls } from "./Controls.js";
 import { CanvasRenderer } from "./CanvasRenderer.js";
 import { GameStateRepository } from "./GameStateRepository.js";
 import { Message } from "./Message.js";
+import { AudioManager } from "./AudioManager.js";
 
 export class Main {
     public static tickRate = 100; // max: 120
@@ -16,8 +17,11 @@ export class Main {
 
     constructor() {
         this.gameStateRepository = new GameStateRepository();
-        const gameState = new GameState();
-        gameState.preloadAllSounds();
+
+        const audioManager = new AudioManager("assets/sounds");
+        audioManager.preloadAllSounds();
+
+        const gameState = new GameState(audioManager);
 
         if (this.gameStateRepository.savePresent()) {
             gameState.applyLoad(this.gameStateRepository.load());
@@ -31,7 +35,7 @@ export class Main {
         }
 
         document.getElementById("reset")!.onclick = () => {
-            const gameState = new GameState();
+            const gameState = new GameState(audioManager);
             gameState.pickNextTetromino();
             this.gameState?.applyLoad(gameState);
             this.gameStateRepository.deleteSave();
