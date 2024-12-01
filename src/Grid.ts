@@ -2,15 +2,19 @@ import { Tetromino } from "./Tetromino.js";
 import { of, Vec2 } from "./Vec2.js";
 
 export class Grid {
-    static readonly PIXEL_SIZE = 49;
     static readonly COLS = 10; // 10
     static readonly ROWS = 20; // 20
-    static readonly GRID_BORDER_SIZES = of(1, 1);
     static readonly NEXT_TETROMINO_OFFSET = of(3, 1);
+
+    static PIXEL_SIZE = 49;
+    static GRID_BORDER_SIZES = of(1, 1);
+
+    private readonly _baseOffset = Vec2.ZERO;
     private readonly _pixels: number[][];
 
-    constructor(pixels = this.empty()) {
+    constructor(pixels = this.empty(), baseOffset = Vec2.ZERO) {
         this._pixels = pixels;
+        this._baseOffset = baseOffset;
     }
 
     private empty() {
@@ -31,6 +35,10 @@ export class Grid {
 
     public get pixels(): number[][] {
         return this._pixels;
+    }
+
+    public get baseOffset(): Vec2 {
+        return Grid.GRID_BORDER_SIZES.plus(this._baseOffset);
     }
 
     public toString = () => {

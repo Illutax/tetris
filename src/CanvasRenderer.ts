@@ -66,12 +66,14 @@ export class CanvasRenderer {
         const ctx = this.canvas.getContext("2d", {alpha: false})!;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.drawBorders(ctx);
-        this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), gameState.level);
+        const level = gameState.level;
+        const grid = gameState.getGrid();
+        this.drawBorders(ctx, grid);
+        this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), level, grid);
         this.drawGrid(ctx, gameState);
 
-        this.drawNextTetromino(ctx, gameState.nextTetromino, gameState.level)
-        this.drawScores(ctx, gameState.totalLinesCleared, gameState.level, gameState.totalScore);
+        this.drawNextTetromino(ctx, gameState.nextTetromino, level, grid)
+        this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore);
 
         // Text overlay
         if (gameState.pause) this.drawPausedBanner(ctx);
@@ -112,13 +114,13 @@ export class CanvasRenderer {
                 let cell = grid.pixels[y][x];
                 if (cell !== 0) {
                     const color = this.colorFromCell(cell) + (lineBeingCleared ? "44" : "FF");
-                    this.drawCell(ctx, of(x, y), color, gameState.level);
+                    this.drawCell(ctx, of(x, y), color, gameState.level, grid);
                 }
             }
         }
     }
 
-    private drawShadowPiece(ctx: CanvasRenderingContext2D, tetromino: Tetromino, shadowPos: Vec2, level: number) {
+    private drawShadowPiece(ctx: CanvasRenderingContext2D, tetromino: Tetromino, shadowPos: Vec2, level: number, grid: Grid) {
         const tetrominoY = tetromino.pixels.length;
         const tetrominoX = tetromino.pixels[0].length;
 
@@ -127,13 +129,13 @@ export class CanvasRenderer {
                 let cell = tetromino.pixels[y][x];
                 if (cell !== 0) {
                     const color = this.colorFromCell(cell);
-                    this.drawCell(ctx, of(x, y).plus(shadowPos), `${color}44`, level);
+                    this.drawCell(ctx, of(x, y).plus(shadowPos), `${color}44`, level, grid);
                 }
             }
         }
     }
 
-    private drawNextTetromino(ctx: CanvasRenderingContext2D, nextTetrominoes: Tetromino[], level: number) {
+    private drawNextTetromino(ctx: CanvasRenderingContext2D, nextTetrominoes: Tetromino[], level: number, grid: Grid) {
         let offset = Grid.NEXT_TETROMINO_OFFSET.plus(of(Grid.COLS, 0));
         for (const nextTetromino of nextTetrominoes) {
             const tetrominoY = nextTetromino.pixels.length;
@@ -144,7 +146,7 @@ export class CanvasRenderer {
                     let cell = nextTetromino.pixels[y][x];
                     if (cell !== 0) {
                         const color = this.colorFromCell(cell);
-                        this.drawCell(ctx, offset.plus(of(x, y)), color, level);
+                        this.drawCell(ctx, offset.plus(of(x, y)), color, level, grid);
                     }
                 }
             }
@@ -152,8 +154,8 @@ export class CanvasRenderer {
         }
     }
 
-    public drawCell(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, level: number) {
-        let fn: (ctx: CanvasRenderingContext2D, pos: Vec2, color: string) => void;
+    public drawCell(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, level: number, grid: Grid) {
+        let fn: (ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) => void;
         if (level < 10) {
             fn = this.drawCellDefaultFill;
         } else if (level < 20) {
@@ -161,12 +163,12 @@ export class CanvasRenderer {
         } else {
             fn = this.drawCell3D;
         }
-        fn.apply(this, [ctx, pos, color]);
+        fn.apply(this, [ctx, pos, color, grid]);
     }
 
-    private drawCell3D(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
+    private drawCell3D(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = Grid.GRID_BORDER_SIZES;
+        const offset = grid.baseOffset;
         const thickness = 2;
         ctx.fillStyle = "#222";
         ctx.fillRect(
@@ -192,9 +194,9 @@ export class CanvasRenderer {
         );
     }
 
-    private drawCellWireFrame(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
+    private drawCellWireFrame(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = Grid.GRID_BORDER_SIZES;
+        const offset = grid.baseOffset;
         ctx.fillStyle = color;
         ctx.fillRect(
             (offset.x + pos.x) * size, // x
@@ -212,9 +214,9 @@ export class CanvasRenderer {
         );
     }
 
-    private drawCellDefaultFill(ctx: CanvasRenderingContext2D, pos: Vec2, color: string) {
+    private drawCellDefaultFill(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = Grid.GRID_BORDER_SIZES;
+        const offset = grid.baseOffset;
         ctx.fillStyle = color;
         ctx.fillRect(
             (offset.x + pos.x) * size, // x
@@ -224,24 +226,26 @@ export class CanvasRenderer {
         );
     }
 
-    private drawBorders(ctx: CanvasRenderingContext2D) {
+    private drawBorders(ctx: CanvasRenderingContext2D, grid: Grid) {
         ctx.fillStyle = "#888";
         ctx.strokeStyle
         const size = Grid.PIXEL_SIZE;
+        const offset = grid.baseOffset;
+        const borderOffset = Grid.GRID_BORDER_SIZES;
         ctx.fillRect(
-            0,
-            0,
-            (Grid.COLS + 2 * Grid.GRID_BORDER_SIZES.x) * size,
-            (Grid.ROWS + 2 * Grid.GRID_BORDER_SIZES.y) * size
+            (offset.x - borderOffset.x) * size,
+            (offset.y - borderOffset.x) * size,
+            (Grid.COLS + 2 * borderOffset.x) * size,
+            (Grid.ROWS + 2 * borderOffset.y) * size
         )
 
         ctx.fillStyle = "#000";
         const borderThickness = 1;
         ctx.fillRect(
-            size,
-            size,
-            Grid.COLS * size - borderThickness * 2,
-            Grid.ROWS * size - borderThickness * 2
+            offset.x * size,
+            offset.y * size,
+            Grid.COLS * size,
+            Grid.ROWS * size
         )
     }
 
