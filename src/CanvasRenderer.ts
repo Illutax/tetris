@@ -68,6 +68,7 @@ export class CanvasRenderer {
 
         const level = gameState.level;
         const grid = gameState.getGrid();
+        const baseOffset = gameState.getGrid().baseOffset;
         this.drawBorders(ctx, grid);
         this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), level, grid);
         this.drawGrid(ctx, gameState);
@@ -76,7 +77,7 @@ export class CanvasRenderer {
         this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore);
 
         // Text overlay
-        if (gameState.pause) this.drawPausedBanner(ctx);
+        if (gameState.pause) this.drawPausedBanner(ctx, baseOffset);
 
         let currentWindowSize = this.getCurrentWindowSize();
         if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT) {
@@ -281,17 +282,16 @@ export class CanvasRenderer {
         ctx.fillText(`Level: ${level} Score: ${score} Lines: ${totalLinesCleared} `, pos.x, 42);
     }
 
-    private drawPausedBanner(ctx: CanvasRenderingContext2D) {
-        this.drawText(ctx, "* PAUSED *");
+    private drawPausedBanner(ctx: CanvasRenderingContext2D, baseOffset: Vec2) {
+        this.drawText(ctx, "* PAUSED *", TextDrawRegion.CENTER, baseOffset);
     }
 
-    private drawText(ctx: CanvasRenderingContext2D, text: string, region: TextDrawRegion = TextDrawRegion.CENTER, offset: Vec2 = Vec2.ZERO) {
+    private drawText(ctx: CanvasRenderingContext2D, text: string, region: TextDrawRegion, offset: Vec2 = Vec2.ZERO) {
         let pos: Vec2;
         switch (region) {
             case TextDrawRegion.CENTER:
                 pos = of(Grid.COLS, Grid.ROWS)
-                    .plus(Grid.GRID_BORDER_SIZES)
-                    .plus(offset)
+                    .plus(offset).plus(offset)
                     .mult(Grid.PIXEL_SIZE)
                     .div(2);
                 ctx.textAlign = "center";
