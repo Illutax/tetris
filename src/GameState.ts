@@ -107,10 +107,11 @@ export class GameState {
 
     //endregion
 
-    constructor(audioManager: AudioManager | undefined = undefined) {
+    constructor(audioManager: AudioManager | undefined = undefined, isPlayerTwo = false) {
         this.audioManager = audioManager;
         this.BAG = this.bagRandom();
-        this._grid = new Grid();
+        const baseOffset = isPlayerTwo ? of(Grid.COLS + 13, 0) : Vec2.ZERO;
+        this._grid = new Grid(baseOffset);
 
         this._currentPos = Vec2.ZERO;
         this._levelOffset = 0;
@@ -320,7 +321,7 @@ export class GameState {
             this._level = 1 + Math.floor(this._totalLinesCleared / 10);
             this._totalScore += this.getScore(linesCleared, this.level);
 
-            this._grid = new Grid(newGrid);
+            this._grid = new Grid(this._grid.baseOffset, newGrid);
 
             this.animating = false;
         }, 600);

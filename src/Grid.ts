@@ -9,12 +9,12 @@ export class Grid {
     static PIXEL_SIZE = 49;
     static GRID_BORDER_SIZES = of(1, 1);
 
-    private readonly _baseOffset = Vec2.ZERO;
+    private readonly _offset = Vec2.ZERO;
     private readonly _pixels: number[][];
 
-    constructor(pixels = this.empty(), baseOffset = Vec2.ZERO) {
+    constructor(baseOffset = Vec2.ZERO, pixels = this.empty()) {
+        this._offset = baseOffset;
         this._pixels = pixels;
-        this._baseOffset = baseOffset;
     }
 
     private empty() {
@@ -38,7 +38,11 @@ export class Grid {
     }
 
     public get baseOffset(): Vec2 {
-        return Grid.GRID_BORDER_SIZES.plus(this._baseOffset);
+        return this._offset;
+    }
+
+    public get offset(): Vec2 {
+        return Grid.GRID_BORDER_SIZES.plus(this._offset);
     }
 
     public toString = () => {
@@ -59,7 +63,7 @@ export class Grid {
     }
 
     copy() {
-        return new Grid(this._pixels.map(it => it.slice()));
+        return new Grid(this._offset, this._pixels.map(it => it.slice()));
     }
 
     inBounds(tetromino: Tetromino, newPos: Vec2) {

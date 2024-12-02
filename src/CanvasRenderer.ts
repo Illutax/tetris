@@ -13,12 +13,64 @@ export class CanvasRenderer {
 
     private pausedGameDueToSmallWindow = false;
 
-    constructor(controls: Controls) {
+    constructor(controls: Controls, controls2: Controls | undefined) {
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
         this.canvas.tabIndex = 0; // make canvas focus-able
 
-        this.registerInputs(this.canvas, controls);
+        if (controls2 != undefined) {
+            this.registerInputsForTwoPlayers(this.canvas, [controls, controls2!]);
+        } else {
+            this.registerInputs(this.canvas, controls);
+        }
         this.adjustCanvasToScreen();
+    }
+
+    private registerInputsForTwoPlayers(canvas: HTMLCanvasElement, controls: Controls[]) {
+        canvas.focus();
+        canvas.onkeydown = ({key}) => {
+            key = key.toLowerCase();
+            // console.log(`${key}`);
+            if (key === "a") controls[0].moveLeft();
+            if (key === "arrowleft") controls[1].moveLeft();
+
+            if (key === "d") controls[0].moveRight();
+            if (key === "arrowright") controls[1].moveRight();
+
+            if (key === "w") controls[0].place();
+            if (key === "arrowup") controls[1].place();
+
+            if (key === "s") controls[0].moveDown();
+            if (key === "arrowdown") controls[1].moveDown();
+
+            if (key === "q") controls[0].rotateCW();
+            if (key === "control") controls[1].rotateCW();
+
+            if (key === "e") controls[0].rotateCCW();
+            if (key === "0") controls[1].rotateCCW();
+
+            if (key === "p") {
+                controls[0].pause();
+                controls[1].pause();
+            }
+
+            if (key === "+") {
+                controls[0].incLevel();
+                controls[1].incLevel();
+            }
+            if (key === "-") {
+                controls[0].decLevel();
+                controls[1].decLevel();
+            }
+
+            if (key == "f7") controls[0].load()
+            if (key == "f8") controls[0].save()
+            if (key == "r") {
+                controls[0].reset()
+                controls[1].reset()
+            }
+            // swallow every key except reload and console
+            return key === "f5" || key === "f12";
+        };
     }
 
     private registerInputs(canvas: HTMLCanvasElement, controls: Controls) {
@@ -60,36 +112,37 @@ export class CanvasRenderer {
         return Vec2.of(width, height);
     }
 
-    render(gameState: GameState): void {
+    render(gameStates: GameState[]): void {
         this.canvas.focus();
         this.adjustCanvasToScreen();
         const ctx = this.canvas.getContext("2d", {alpha: false})!;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const level = gameState.level;
-        const grid = gameState.getGrid();
-        const baseOffset = gameState.getGrid().baseOffset;
-        this.drawBorders(ctx, grid);
-        this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), level, grid);
-        this.drawGrid(ctx, gameState);
+        for (let gameState of gameStates) {
+            const level = gameState.level;
+            const grid = gameState.getGrid();
+            this.drawBorders(ctx, grid);
+            this.drawShadowPiece(ctx, gameState.currentTetromino, calculateShadowPos(gameState), level, grid);
+            this.drawGrid(ctx, gameState);
 
-        this.drawNextTetromino(ctx, gameState.nextTetromino, level, grid)
-        this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore);
+            this.drawNextTetromino(ctx, gameState.nextTetromino, level, grid)
+            this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore);
 
-        // Text overlay
-        if (gameState.pause) this.drawPausedBanner(ctx, baseOffset);
+            // Text overlay
+            if (gameState.pause) this.drawPausedBanner(ctx, grid.baseOffset);
 
-        let currentWindowSize = this.getCurrentWindowSize();
-        if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT) {
-            this.pausedGameDueToSmallWindow = true;
-            gameState.pause = true;
-            this.drawText(ctx, "* WINDOW TOO SMALL *", TextDrawRegion.CENTER, Vec2.of(0, 1));
-        } else if (this.pausedGameDueToSmallWindow) {
-            gameState.pause = false;
-            this.pausedGameDueToSmallWindow = false;
+            let currentWindowSize = this.getCurrentWindowSize();
+            if (currentWindowSize.x < CanvasRenderer.PREFERRED_MIN_WIDTH || currentWindowSize.y < CanvasRenderer.PREFERRED_MIN_HEIGHT) {
+                this.pausedGameDueToSmallWindow = true;
+                gameState.pause = true;
+                this.drawText(ctx, "* WINDOW TOO SMALL *", TextDrawRegion.CENTER, Vec2.of(0, 1));
+            } else if (this.pausedGameDueToSmallWindow) {
+                gameState.pause = false;
+                this.pausedGameDueToSmallWindow = false;
+            }
+
+            this.drawMessages(ctx, gameState.messages)
         }
-
-        this.drawMessages(ctx, gameState.messages)
 
         function calculateShadowPos(gameState: GameState): Vec2 {
             let shadow = gameState.currentTetromino.copy();
@@ -169,7 +222,7 @@ export class CanvasRenderer {
 
     private drawCell3D(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = grid.baseOffset;
+        const offset = grid.offset;
         const thickness = 2;
         ctx.fillStyle = "#222";
         ctx.fillRect(
@@ -197,7 +250,7 @@ export class CanvasRenderer {
 
     private drawCellWireFrame(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = grid.baseOffset;
+        const offset = grid.offset;
         ctx.fillStyle = color;
         ctx.fillRect(
             (offset.x + pos.x) * size, // x
@@ -217,7 +270,7 @@ export class CanvasRenderer {
 
     private drawCellDefaultFill(ctx: CanvasRenderingContext2D, pos: Vec2, color: string, grid: Grid) {
         const size = Grid.PIXEL_SIZE;
-        const offset = grid.baseOffset;
+        const offset = grid.offset;
         ctx.fillStyle = color;
         ctx.fillRect(
             (offset.x + pos.x) * size, // x
@@ -231,7 +284,7 @@ export class CanvasRenderer {
         ctx.fillStyle = "#888";
         ctx.strokeStyle
         const size = Grid.PIXEL_SIZE;
-        const offset = grid.baseOffset;
+        const offset = grid.offset;
         const borderOffset = Grid.GRID_BORDER_SIZES;
         ctx.fillRect(
             (offset.x - borderOffset.x) * size,

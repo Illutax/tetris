@@ -6,10 +6,16 @@ import { GameStateRepository } from "./GameStateRepository";
 export class Controls {
     private readonly gameState: GameState;
     private readonly gameStateRepository: GameStateRepository;
+    private readonly _isPlayerTwo: boolean;
 
-    constructor(gameState: GameState, gameStateRepository: GameStateRepository) {
+    constructor(gameState: GameState, gameStateRepository: GameStateRepository, isPlayerTwo: boolean) {
         this.gameState = gameState;
         this.gameStateRepository = gameStateRepository;
+        this._isPlayerTwo = isPlayerTwo;
+    }
+
+    get isPlayerTwo(): boolean {
+        return this._isPlayerTwo;
     }
 
     private tryMove(newPos: Vec2): boolean {

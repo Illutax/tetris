@@ -6,14 +6,19 @@ import { Message } from "./Message.js";
 import { AudioManager } from "./AudioManager.js";
 
 export class Main {
+    public static PLAYER_TWO_ENABLED = false;
     public static tickRate = 100; // max: 120
     private static tickDuration = Math.ceil(1000 / Main.tickRate);
 
     private readonly gameStateRepository: GameStateRepository;
 
     private canvasRenderer: CanvasRenderer | null = null;
-    private gameState: GameState | null = null;
+    private gameStates: GameState[] = [];
     private gameLoopId: number = -1;
+
+    static {
+        this.PLAYER_TWO_ENABLED = this.isTwoPlayerFlagIsSet();
+    }
 
     constructor() {
         this.gameStateRepository = new GameStateRepository();
@@ -37,27 +42,44 @@ export class Main {
         document.getElementById("reset")!.onclick = () => {
             const gameState = new GameState(audioManager);
             gameState.pickNextTetromino();
-            this.gameState?.applyLoad(gameState);
+            this.gameStates[0].applyLoad(gameState);
             this.gameStateRepository.deleteSave();
         }
 
-        this.init(gameState);
+        const controls1 = this.init(gameState);
+        let controls2: Controls | undefined = undefined;
+        this.gameStates[0] = gameState;
+        if (Main.PLAYER_TWO_ENABLED) {
+            const gameState2 = new GameState(audioManager, true);
+            gameState2.pickNextTetromino();
+            controls2 = this.init(gameState2, true);
+            if (gameState.pause) {
+                gameState2.pause = true;
+            }
+            this.gameStates[1] = gameState2;
+        }
+
+        this.canvasRenderer = new CanvasRenderer(controls1, controls2);
+        clearInterval(this.gameLoopId);
+        this.gameLoop();
     }
 
     gameLoop(): void {
-        this.gameState!.tick();
-        this.canvasRenderer!.render(this.gameState!);
+        for (const gameState of this.gameStates) {
+            gameState!.tick();
+        }
 
+        this.canvasRenderer!.render(this.gameStates);
         this.gameLoopId = setTimeout(() => this.gameLoop(), Main.tickDuration);
     }
 
-    init(gameState: GameState) {
+    init(gameState: GameState, isPlayerTwo = false) {
         console.log("initializing", gameState);
-        clearInterval(this.gameLoopId);
-        const controls = new Controls(gameState, this.gameStateRepository);
-        this.canvasRenderer = new CanvasRenderer(controls);
-        this.gameState = gameState;
-        this.gameLoop();
+        return new Controls(gameState, this.gameStateRepository, isPlayerTwo);
+    }
+
+    static isTwoPlayerFlagIsSet() {
+      return localStorage.getItem("PLAYER_TWO_ENABLED") == "true";
     }
 
 }
