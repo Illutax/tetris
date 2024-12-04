@@ -4,6 +4,7 @@ Things which have to be done.
 
 # Features
 
+* Pushing the tetromino down, doesn't award any points, but should give distance*level
 * Finishing touches
   * Game over
   * Main menu
@@ -12,10 +13,11 @@ Things which have to be done.
   * Settings
 * Touch controls
 * seeded randomization
-  * two player
+* Hold-function
 
 ## Bugs
 
+* Stats label for two-players is overlapping
 * Fixing a tetromino takes too long
 * Tetrominoes fall in general to slow & the maximum speed is not high enough
 * line clear timer should depend on the drop speed 

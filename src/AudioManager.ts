@@ -19,6 +19,8 @@ export class AudioManager {
             this.soundCache.set(sfxFile, new Audio(`${this.assetsPrefix}/${sfxFile}`));
         }
         let audio = this.soundCache.get(sfxFile)!;
+        const randomPitch = 1 - (Math.random()/7)
+        audio.playbackRate = randomPitch;
         audio!.play();
     }
 
