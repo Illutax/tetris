@@ -126,7 +126,7 @@ export class CanvasRenderer {
             this.drawGrid(ctx, gameState);
 
             this.drawNextTetromino(ctx, gameState.nextTetromino, level, grid)
-            this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore);
+            this.drawScores(ctx, gameState.totalLinesCleared, level, gameState.totalScore, grid.offset);
 
             // Text overlay
             if (gameState.pause) this.drawPausedBanner(ctx, grid.baseOffset);
@@ -327,12 +327,14 @@ export class CanvasRenderer {
     private drawScores(ctx: CanvasRenderingContext2D,
                        totalLinesCleared: number,
                        level: number,
-                       score: number) {
-        const pos = of(Grid.COLS + Grid.NEXT_TETROMINO_OFFSET.x, Grid.NEXT_TETROMINO_OFFSET.y).mult(Grid.PIXEL_SIZE);
+                       score: number,
+                       offset: Vec2) {
+        const pos = offset.plus(of(0, Grid.ROWS + 1))
+            .mult(Grid.PIXEL_SIZE);
         ctx.font = "40px Arial";
         ctx.textAlign = "start";
         ctx.fillStyle = "#DDD";
-        ctx.fillText(`Level: ${level} Score: ${score} Lines: ${totalLinesCleared} `, pos.x, 42);
+        ctx.fillText(`Level: ${level} Lines: ${totalLinesCleared} Score: ${score}`, pos.x, pos.y);
     }
 
     private drawPausedBanner(ctx: CanvasRenderingContext2D, baseOffset: Vec2) {

@@ -17,7 +17,6 @@ Things which have to be done.
 
 ## Bugs
 
-* Stats label for two-players is overlapping
 * Fixing a tetromino takes too long
 * Tetrominoes fall in general to slow & the maximum speed is not high enough
 * line clear timer should depend on the drop speed 
