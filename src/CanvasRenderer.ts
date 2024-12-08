@@ -183,7 +183,7 @@ export class CanvasRenderer {
                 let cell = tetromino.pixels[y][x];
                 if (cell !== 0) {
                     const color = this.colorFromCell(cell);
-                    this.drawCell(ctx, of(x, y).plus(shadowPos), `${color}44`, level, grid);
+                    this.drawCell(ctx, of(x, y).plus(shadowPos), `${color}35`, level, grid);
                 }
             }
         }
