@@ -15,6 +15,7 @@ export class Main {
     private canvasRenderer: CanvasRenderer | null = null;
     private gameStates: GameState[] = [];
     private gameLoopId: number = -1;
+    private audioManager: AudioManager;
 
     static {
         this.PLAYER_TWO_ENABLED = this.isTwoPlayerFlagIsSet();
@@ -23,10 +24,10 @@ export class Main {
     constructor() {
         this.gameStateRepository = new GameStateRepository();
 
-        const audioManager = new AudioManager("assets/sounds");
-        audioManager.preloadAllSounds();
+        this.audioManager = new AudioManager("assets");
+        this.audioManager.preloadAllSounds();
 
-        const gameState = new GameState(audioManager);
+        const gameState = new GameState(this.audioManager);
 
         if (this.gameStateRepository.savePresent()) {
             gameState.applyLoad(this.gameStateRepository.load());
@@ -40,7 +41,7 @@ export class Main {
         }
 
         document.getElementById("reset")!.onclick = () => {
-            const gameState = new GameState(audioManager);
+            const gameState = new GameState(this.audioManager);
             gameState.pickNextTetromino();
             this.gameStates[0].applyLoad(gameState);
             this.gameStateRepository.deleteSave();
@@ -50,7 +51,7 @@ export class Main {
         let controls2: Controls | undefined = undefined;
         this.gameStates[0] = gameState;
         if (Main.PLAYER_TWO_ENABLED) {
-            const gameState2 = new GameState(audioManager, true);
+            const gameState2 = new GameState(this.audioManager, true);
             gameState2.pickNextTetromino();
             controls2 = this.init(gameState2, true);
             if (gameState.pause) {
@@ -82,6 +83,16 @@ export class Main {
       return localStorage.getItem("PLAYER_TWO_ENABLED") == "true";
     }
 
+    private musicPlaying = false;
+    public startMusic() {
+        if (!this.musicPlaying) {
+            this.audioManager.playMusic("Tetris Remix Ghost and Kozmos Collab.mp3")
+            this.musicPlaying = true;
+            console.log("Start playing")
+        }
+    }
 }
 
-new Main();
+const main = new Main();
+
+window.addEventListener('click', () => main.startMusic())

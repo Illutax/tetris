@@ -14,6 +14,12 @@ Things which have to be done.
 * Touch controls
 * seeded randomization
 * Hold-function
+* bundle the TypeScript with webpack
+* Background-music
+  * Theme-A: https://bitmidi.com/uploads/100438.mid
+  * Theme-B: https://bitmidi.com/uploads/100439.mid
+  * Theme-C: https://bitmidi.com/uploads/100440.mid
+  * https://soundcloud.com/the-musical-ghost/ghost-kozmos-tetris-theme-electro-swing-remix
 
 ## Bugs
 
