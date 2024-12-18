@@ -384,7 +384,7 @@ export class CanvasRenderer {
         switch (region) {
             case TextDrawRegion.CENTER:
                 pos = of(Grid.COLS, Grid.ROWS)
-                    .plus(offset).plus(offset)
+                    .plus(Grid.GRID_BORDER_SIZES).plus(Grid.GRID_BORDER_SIZES)
                     .mult(Grid.PIXEL_SIZE)
                     .div(2);
                 ctx.textAlign = "center";
