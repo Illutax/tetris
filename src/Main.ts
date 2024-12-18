@@ -10,11 +10,12 @@ export class Main {
     public static tickRate = 100; // max: 120
     private static tickDuration = Math.ceil(1000 / Main.tickRate);
 
+    private lastTick = 0;
+
     private readonly gameStateRepository: GameStateRepository;
 
     private canvasRenderer: CanvasRenderer | null = null;
     private gameStates: GameState[] = [];
-    private gameLoopId: number = -1;
     private audioManager: AudioManager;
 
     static {
@@ -61,17 +62,20 @@ export class Main {
         }
 
         this.canvasRenderer = new CanvasRenderer(controls1, controls2);
-        clearInterval(this.gameLoopId);
-        this.gameLoop();
+        requestAnimationFrame(this.gameLoop.bind(this));
     }
 
-    gameLoop(): void {
-        for (const gameState of this.gameStates) {
-            gameState!.tick();
-        }
+    gameLoop(timestamp: DOMHighResTimeStamp): void {
+        const elapsed = timestamp - this.lastTick;
+        if (elapsed > Main.tickDuration) {
+            this.lastTick = timestamp;
+            for (const gameState of this.gameStates) {
+                gameState!.tick();
+            }
 
+        }
         this.canvasRenderer!.render(this.gameStates);
-        this.gameLoopId = setTimeout(() => this.gameLoop(), Main.tickDuration);
+        requestAnimationFrame(this.gameLoop.bind(this))
     }
 
     init(gameState: GameState, isPlayerTwo = false) {
@@ -80,10 +84,11 @@ export class Main {
     }
 
     static isTwoPlayerFlagIsSet() {
-      return localStorage.getItem("PLAYER_TWO_ENABLED") == "true";
+        return localStorage.getItem("PLAYER_TWO_ENABLED") == "true";
     }
 
     private musicPlaying = false;
+
     public startMusic() {
         if (!this.musicPlaying) {
             this.audioManager.playMusic("Tetris Remix Ghost and Kozmos Collab.mp3")
@@ -95,4 +100,4 @@ export class Main {
 
 const main = new Main();
 
-window.addEventListener('click', () => main.startMusic())
+// window.addEventListener('click', () => main.startMusic())
