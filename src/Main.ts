@@ -52,6 +52,15 @@ export class Main {
             this.gameStateRepository.deleteSave();
         }
 
+        const twoPlayerCheckbox = document.getElementById("two-player")! as HTMLInputElement;
+        twoPlayerCheckbox.onclick = (_) => {
+            const value = twoPlayerCheckbox.checked.toString();
+            localStorage.setItem("PLAYER_TWO_ENABLED", value);
+            console.log(twoPlayerCheckbox.checked, Main.isTwoPlayerFlagIsSet());
+            location.reload();
+        }
+        twoPlayerCheckbox.checked = Main.isTwoPlayerFlagIsSet();
+
         const controls1 = this.init(gameState);
         let controls2: Controls | undefined = undefined;
         if (Main.PLAYER_TWO_ENABLED) {
