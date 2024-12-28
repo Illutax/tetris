@@ -127,7 +127,7 @@ export class GameState {
             this._nextTetromino = this._nextTetromino.map(() => this.getATetromino())
         }
 
-        this.id = Math.floor(Math.random() * (10 ^ 16));
+        this.id = Math.floor(Math.random() * (10 ** 16));
     }
 
     public applyLoad(loadedGameState: GameState) {

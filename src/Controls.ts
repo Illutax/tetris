@@ -100,17 +100,22 @@ export class Controls {
     }
 
     save() {
-        this.gameStateRepository.save(this.gameState)
+        this.gameStateRepository.save(this.getId(), this.gameState);
         console.log("Saved");
     }
 
     load() {
-        if (!this.gameStateRepository.savePresent()) {
+        const id = this.getId();
+        if (!this.gameStateRepository.savePresent(id)) {
             throw new Error("Cannot load. No save present!")
         }
-        let newGameState = this.gameStateRepository.load();
+        let newGameState = this.gameStateRepository.load(id);
         console.log("Loaded");
         this.gameState.applyLoad(newGameState);
+    }
+
+    private getId() {
+        return this.isPlayerTwo ? 2 : 1;
     }
 
     reset() {
