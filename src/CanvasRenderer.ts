@@ -92,7 +92,7 @@ export class CanvasRenderer {
             if (key == "f8") controls.save()
             if (key == "r") controls.reset()
             // swallow every key except reload and console
-            return key === "f5" || key === "f12";
+            return key === "f5" || key === "f12" || key === "r";
         };
     }
 

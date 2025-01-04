@@ -14,10 +14,6 @@ export class Controls {
         this._isPlayerTwo = isPlayerTwo;
     }
 
-    get isPlayerTwo(): boolean {
-        return this._isPlayerTwo;
-    }
-
     private tryMove(newPos: Vec2): boolean {
         const currentTetromino = this.gameState.currentTetromino;
         if (this.gameState.inBounds(newPos, currentTetromino)) {
@@ -114,7 +110,7 @@ export class Controls {
     }
 
     reset() {
-        let gameState = new GameState();
+        let gameState = new GameState(this.gameState.randomSeed);
         gameState.pickNextTetromino()
         this.gameState.applyLoad(gameState);
     }

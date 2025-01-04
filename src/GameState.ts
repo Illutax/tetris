@@ -3,11 +3,14 @@ import { Grid } from "./Grid.js";
 import { of, Vec2 } from "./Vec2.js";
 import { Message } from "./Message.js";
 import { AudioManager } from "./AudioManager.js";
+import { Random } from "./Random.js";
 
 export class GameState {
     private readonly audioManager: AudioManager | undefined;
     private readonly ONLY_I_PIECES = false;
-    private readonly BAG: Generator<Tetromino>;
+    private readonly _randomSeed: number;
+    private rnd: Random;
+    private readonly bag: Generator<Tetromino>;
     private id: number;
 
     private amountOfNextTetrominoes = 1;
@@ -105,11 +108,19 @@ export class GameState {
         this._currentPos = value;
     }
 
+    get randomSeed() {
+        return this._randomSeed;
+    }
+
     //endregion
 
-    constructor(audioManager: AudioManager | undefined = undefined, isPlayerTwo = false) {
+    constructor(randomSeed: number, audioManager: AudioManager | undefined = undefined, isPlayerTwo = false) {
+        this.id = Math.floor(Math.random() * (10 ^ 16));
+
         this.audioManager = audioManager;
-        this.BAG = this.bagRandom();
+        this._randomSeed = randomSeed;
+        this.rnd = new Random(randomSeed);
+        this.bag = this.bagRandom(this.rnd);
         const baseOffset = isPlayerTwo ? of(Grid.COLS + 13, 0) : Vec2.ZERO;
         this._grid = new Grid(baseOffset);
 
@@ -120,18 +131,19 @@ export class GameState {
         this._totalLinesCleared = 0;
         this._totalScore = 0;
         this.nextGravity = this.getMs() + this.progression(this.level);
-        this._nextTetromino = new Array(this.amountOfNextTetrominoes)
-            .fill(Tetromino.I);
-
-        if (!this.ONLY_I_PIECES) {
-            this._nextTetromino = this._nextTetromino.map(() => this.getATetromino())
+        this._nextTetromino = [];
+        for (let i = 0; i < this.amountOfNextTetrominoes; i++) {
+            if (this.ONLY_I_PIECES) {
+                this.nextTetromino.push(Tetromino.I);
+            } else {
+                this.nextTetromino.push(this.getATetromino());
+            }
         }
-
-        this.id = Math.floor(Math.random() * (10 ^ 16));
     }
 
     public applyLoad(loadedGameState: GameState) {
         this.id = loadedGameState.id;
+        this.rnd = loadedGameState.rnd;
 
         function assignTetromino(currentTetromino1: Tetromino) {
             return Object.assign(new Tetromino("", []), (currentTetromino1)!);
@@ -216,24 +228,25 @@ export class GameState {
     }
 
     private getFairRandomTetromino() {
-        return this.BAG.next().value;
+        const value = this.bag.next().value;
+        return value;
     }
 
     private getRandomTetromino() {
         return Tetromino.ALL[Math.floor(Math.random() * 7)].copy();
     }
 
-    * bagRandom(): Generator<Tetromino> {
+    * bagRandom(rnd: Random): Generator<Tetromino> {
         let bag = Tetromino.ALL.slice();
 
-        function randomShuffle(array: Tetromino[]) {
+        function randomShuffle(rnd: Random, array: Tetromino[]) {
             let currentIndex = array.length, randomIndex;
 
             // While there remain elements to shuffle.
             while (currentIndex != 0) {
 
                 // Pick a remaining element.
-                randomIndex = Math.floor(Math.random() * currentIndex);
+                randomIndex = Math.floor(rnd.nextNumber() * currentIndex);
                 currentIndex--;
 
                 // And swap it with the current element.
@@ -244,7 +257,7 @@ export class GameState {
         }
 
         while (true) {
-            randomShuffle(bag);
+            randomShuffle(rnd, bag);
             yield* bag;
         }
     }
